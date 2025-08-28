@@ -1,9 +1,20 @@
+import { db } from '../db';
+import { tasksTable } from '../db/schema';
 import { type IdParam } from '../schema';
+import { eq } from 'drizzle-orm';
 
 export const deleteTask = async (input: IdParam): Promise<{ success: boolean }> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is deleting a task from the database by ID.
-    // Should also remove all associated task-category relationships due to cascade delete.
-    // Returns success status indicating if the operation completed successfully.
-    return Promise.resolve({ success: true });
+  try {
+    // Delete the task by ID - cascade delete will handle task_categories relationships
+    const result = await db.delete(tasksTable)
+      .where(eq(tasksTable.id, input.id))
+      .returning()
+      .execute();
+
+    // Return success if a task was actually deleted
+    return { success: result.length > 0 };
+  } catch (error) {
+    console.error('Task deletion failed:', error);
+    throw error;
+  }
 };
